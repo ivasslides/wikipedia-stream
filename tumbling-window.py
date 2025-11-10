@@ -17,7 +17,7 @@ sdf = app.dataframe(wikipedia_topic)
 # Filter out events without a valid 'type' field
 sdf = sdf.filter(lambda event: event.get('type') is not None and event.get('type') != '')
 
-# Group by event type and create a 3-minute tumbling window to count events
+# Group by event type and create a 1-minute tumbling window to count events
 # Using reduce to preserve the event type in the result
 def initializer(event):
     return {'type': event.get('type', 'unknown'), 'count': 0}
@@ -28,7 +28,7 @@ def reducer(aggregated, event):
 
 sdf = (
     sdf.group_by(lambda event: event['type'], name='type')
-    .tumbling_window(duration_ms=timedelta(minutes=3))
+    .tumbling_window(duration_ms=timedelta(minutes=1))
     .reduce(initializer=initializer, reducer=reducer)
     .final()
 )
@@ -48,6 +48,6 @@ def print_window_result(result):
 sdf.update(print_window_result)
 
 if __name__ == '__main__':
-    print("Starting Wikipedia event type counter with 3-minute tumbling windows...")
+    print("Starting Wikipedia event type counter with 1-minute tumbling windows...")
     print("Press Ctrl+C to stop\n")
     app.run(sdf)
